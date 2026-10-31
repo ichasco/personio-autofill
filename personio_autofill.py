@@ -21,8 +21,8 @@ Skips: non-working days, holidays, absences (unless rejected/cancelled),
 Uses internal (undocumented) endpoints of the Personio web app: they may change.
 If it stops working, use --discover to see what the web app calls now.
 
-Requirements (once; uv installs the rest):
-    uvx playwright install chromium
+Requirements: uv, and Google Chrome or Microsoft Edge installed. Without them,
+run once: uvx playwright install chromium
 
 Example:
     ./personio_autofill.py --host https://yourcompany.app.personio.com \
@@ -78,6 +78,18 @@ TRACK_OP = "TM_TrackAttendancePeriodsOnDay_v2026071301"
 TRACK_HASH = "52d040f7dfa51ff8a9a3cd149cd2da58c5d15ed404f2be69e1d081bcab879c83"
 
 
+def launch_browser(p, profile_dir: str):
+    """Use the installed Chrome or Edge; fall back to Playwright's own Chromium."""
+    for channel in ("chrome", "msedge", None):
+        try:
+            return p.chromium.launch_persistent_context(profile_dir, headless=False,
+                                                        channel=channel)
+        except Exception as e:
+            last = e
+    sys.exit("No usable browser found. Install Google Chrome, or run "
+             f"`uvx playwright install chromium`.\n{last}")
+
+
 def month_end(d: date) -> date:
     return (d.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
 
@@ -99,7 +111,7 @@ class Personio:
 
         ctx_url = f"{self.host}/api/v1/navigation/context"
         with sync_playwright() as p:
-            ctx = p.chromium.launch_persistent_context(profile_dir, headless=False)
+            ctx = launch_browser(p, profile_dir)
             page = ctx.pages[0] if ctx.pages else ctx.new_page()
             page.goto(self.host)
             console.print("Log in in the browser window (SSO). "
@@ -445,7 +457,7 @@ def discover(host: str, profile_dir: str, out: str):
         console.print(f"[dim]{req.method} {r.status} {r.url[len(host):][:120]}[/]")
 
     with sync_playwright() as p:
-        ctx = p.chromium.launch_persistent_context(profile_dir, headless=False)
+        ctx = launch_browser(p, profile_dir)
         ctx.on("response", on_response)
         page = ctx.pages[0] if ctx.pages else ctx.new_page()
         page.goto(host)

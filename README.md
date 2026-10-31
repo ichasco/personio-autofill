@@ -21,7 +21,8 @@ it can only do what you can already do in the Personio web app.
 
 ## How it works
 
-1. **Login** – opens Chromium with a dedicated profile. You log in with SSO/MFA
+1. **Login** – opens your Chrome (or Edge) with a dedicated profile, separate
+   from your everyday one. You log in with SSO/MFA
    as usual. The script detects the session, grabs the cookies and closes the
    browser. The profile is kept, so next runs usually skip the login until the
    SSO session expires.
@@ -58,11 +59,18 @@ A break is stored as a gap between two work periods (e.g. 09:00–14:00 and
 
 - [uv](https://docs.astral.sh/uv/) (it installs the Python dependencies on the
   fly from the script header, no virtualenv or `pip install` needed)
-- Chromium for Playwright, once:
+- Google Chrome or Microsoft Edge installed (the script uses whichever it
+  finds, in that order). If you have neither, install Playwright's Chromium once:
 
 ```bash
 uvx playwright install chromium
 ```
+
+Safari and Firefox are not supported: Playwright cannot drive the system Safari,
+and Firefox would need its own patched build download anyway.
+
+On macOS, install uv with `brew install uv` (or
+`curl -LsSf https://astral.sh/uv/install.sh | sh`).
 
 ## Usage
 
