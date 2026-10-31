@@ -1,0 +1,4 @@
+# Plan output and discovery dumps contain your personal attendance data
+*.csv
+discover*.json
+__pycache__/
